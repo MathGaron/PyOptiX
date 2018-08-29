@@ -10,8 +10,20 @@ NativeBufferWrapper::~NativeBufferWrapper() {
     if (!is_destroyed && auto_destroy) this->buffer->destroy();
 }
 
+void* NativeBufferWrapper::map(){
+    return this->buffer->map();
+}
+
+void NativeBufferWrapper::unmap(){
+    this->buffer->unmap();
+}
+
 int NativeBufferWrapper::get_id() {
     return this->buffer->getId();
+}
+
+unsigned int NativeBufferWrapper::getGLBOId(){
+    return this->buffer->getGLBOId();
 }
 
 void NativeBufferWrapper::mark_dirty() {
@@ -192,8 +204,10 @@ void NativeBufferWrapper::boost_python_expose() {
                 "NativeBufferWrapper",
                 "Wraps optix::Buffer class",
                 boost::python::no_init)
-
+            .def("map", &NativeBufferWrapper::map)
+            .def("unmap", &NativeBufferWrapper::unmap)
             .def("get_id", &NativeBufferWrapper::get_id)
+            .def("getGLBOId", &NativeBufferWrapper::getGLBOId)
             .def("mark_dirty", &NativeBufferWrapper::mark_dirty)
             .def("set_format", &NativeBufferWrapper::set_format)
             .def("get_format", &NativeBufferWrapper::get_format)

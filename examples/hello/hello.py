@@ -5,7 +5,7 @@ sys.path.append(dirname(dirname(dirname(__file__))))
 import numpy as np
 from PIL import Image
 from pyoptix import Context, Buffer, Program, EntryPoint, Compiler
-from examples.common import ImageWindow
+from examples.common import ImageWindow, ImageWindow
 
 
 Compiler.add_program_directory(dirname(__file__))
@@ -19,7 +19,7 @@ def main():
 
     context.set_ray_type_count(1)
 
-    context['result_buffer'] = Buffer.empty((height, width, 4), buffer_type='o', dtype=np.float32, drop_last_dim=True)
+    context['output_buffer'] = Buffer.empty((height, width, 4), buffer_type='o', dtype=np.float32, drop_last_dim=True)
 
     ray_gen_program = Program('draw_color.cu', 'draw_solid_color')
 
@@ -28,11 +28,8 @@ def main():
     entry_point = EntryPoint(ray_gen_program)
     entry_point.launch(size=(width, height))
 
-    result_array = context['result_buffer'].to_array()
-    result_array *= 255
-    result_image = Image.fromarray(result_array.astype(np.uint8)[:, :, :3])
-
-    ImageWindow(result_image)
+    window = ImageWindow(context, width, height)
+    window.run()
 
 if __name__ == '__main__':
     main()

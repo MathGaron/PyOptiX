@@ -58,8 +58,17 @@ class Buffer(HasContextMixin, DestroyableObject, BindlessMixin):
         instance._restructure_and_copy_from_numpy_array(array, drop_last_dim)
         return instance
 
+    def map(self):
+        return self._safe_native.map()
+
+    def unmap(self):
+        self._safe_native.unmap()
+
     def get_id(self):
         return self._safe_native.get_id()
+
+    def get_GLBO_id(self):
+        return self._safe_native.getGLBOId()
 
     def mark_dirty(self):
         self._safe_native.mark_dirty()
@@ -89,6 +98,9 @@ class Buffer(HasContextMixin, DestroyableObject, BindlessMixin):
                 raise ValueError('Invalid dtype argument')
 
         self._safe_native.set_format(_format)
+
+    def get_format(self):
+        return self._safe_native.get_format()
 
     def _reset_buffer(self, numpy_shape, dtype=numpy.float32, drop_last_dim=False):
         self._numpy_dtype = numpy.dtype(dtype)

@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from pyoptix import Context, Compiler, Buffer, Program, Geometry, Material, GeometryInstance, EntryPoint, \
     GeometryGroup, Acceleration
-from examples.common import ImageWindow, calculate_camera_variables, ImageWindow
+from examples.common import ImageWindow, calculate_camera_variables
 
 width = 1024
 height = 768
@@ -15,16 +15,18 @@ Compiler.add_program_directory(dirname(__file__))
 
 
 def main():
-    context, entry_point = create_context()
-    sphere = create_geometry()
-    material = create_material()
-    create_instance(context, sphere, material)
+    #context, entry_point = create_context()
+    #sphere = create_geometry()
+    #material = create_material()
+    #create_instance(context, sphere, material)
 
-    entry_point.launch((width, height))
-    context.pop()
+    #entry_point.launch((width, height))
+    #result_array = context['output_buffer'].to_array()
+    #result_image = Image.fromarray(result_array)
+    #ImageWindow(result_image)
 
-    window = ImageWindow(context, width, height)
-    window.run()
+    #context.pop()
+
 
 
 def create_context():

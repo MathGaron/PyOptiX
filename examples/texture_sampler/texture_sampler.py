@@ -5,8 +5,7 @@ sys.path.append(dirname(dirname(dirname(__file__))))
 import numpy as np
 from PIL import Image
 from pyoptix import Context, Compiler, Buffer, Program, EntryPoint, TextureSampler
-from examples.common import ImageWindow
-
+from examples.common import ImageWindow, ImageWindow
 
 Compiler.add_program_directory(dirname(__file__))
 
@@ -37,7 +36,7 @@ def main():
 
     context['input_texture'] = tex_sampler
 
-    context['result_buffer'] = Buffer.empty((trace_height, trace_width, 4), dtype=np.float32,
+    context['output_buffer'] = Buffer.empty((trace_height, trace_width, 4), dtype=np.float32,
                                             buffer_type='o', drop_last_dim=True)
 
     entry_point = EntryPoint(Program('draw_texture.cu', 'draw_texture'),
@@ -45,11 +44,14 @@ def main():
 
     entry_point.launch((trace_width, trace_height))
 
-    result_array = context['result_buffer'].to_array()
-    result_array *= 255
-    result_array = result_array.astype(np.uint8)
-    result_image = Image.fromarray(result_array)
-    ImageWindow(result_image)
+    window = ImageWindow(context, trace_width, trace_height)
+    window.run()
+
+    #result_array = context['result_buffer'].to_array()
+    #result_array *= 255
+    #result_array = result_array.astype(np.uint8)
+    #result_image = Image.fromarray(result_array)
+    #ImageWindow(result_image)
 
 
 if __name__ == '__main__':

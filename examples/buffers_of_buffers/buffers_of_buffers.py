@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image
 from pyoptix import Context, Buffer, Program, EntryPoint, Geometry, Material, GeometryInstance, GeometryGroup, \
     Acceleration, Compiler
-from examples.common import ImageWindow, calculate_camera_variables
+from examples.common import ImageWindow, calculate_camera_variables, ImageWindow
 from examples.buffers_of_buffers.common_structs import BasicLight
 
 
@@ -163,9 +163,12 @@ def main():
     create_scene(context, num_buffers)
     entry_point.launch((width, height))
 
-    result_array = context['output_buffer'].to_array()
-    result_image = Image.fromarray(result_array)
-    ImageWindow(result_image.rotate(180))
+    window = ImageWindow(context, width, height)
+    window.run()
+
+    #result_array = context['output_buffer'].to_array()
+    #result_image = Image.fromarray(result_array)
+    #ImageWindow(result_image.rotate(180))
 
 
 if __name__ == '__main__':

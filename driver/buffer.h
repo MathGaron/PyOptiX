@@ -11,7 +11,10 @@ private:
 public:
     NativeBufferWrapper(optix::Buffer buffer);
     ~NativeBufferWrapper();
+    void* map();
+    void unmap();
     int get_id();
+    unsigned int getGLBOId();
     void mark_dirty();
     void set_format(RTformat format);
     RTformat get_format();

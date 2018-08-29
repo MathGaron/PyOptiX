@@ -31,7 +31,7 @@
 
 using namespace optix;
 
-rtBuffer<float4, 2>                                      result_buffer;
+rtBuffer<float4, 2>                                      output_buffer;
 rtTextureSampler<uchar4, 2, cudaReadModeNormalizedFloat> input_texture;
 // This line would also implicitly cast up to floats:
 // rtTextureSampler<float4, 2> input_texture;
@@ -39,15 +39,15 @@ rtDeclareVariable(uint2, launch_index, rtLaunchIndex, );
 
 RT_PROGRAM void draw_texture()
 {
-  size_t2 screen = result_buffer.size();
+  size_t2 screen = output_buffer.size();
   float2 uv = make_float2(launch_index) / make_float2(screen);
   
-  result_buffer[launch_index] = tex2D(input_texture, uv.x, uv.y);
+  output_buffer[launch_index] = tex2D(input_texture, uv.x, uv.y);
 }
 
 RT_PROGRAM void exception()
 {
   const unsigned int code = rtGetExceptionCode();
   rtPrintf( "Caught exception 0x%X at launch index (%d,%d)\n", code, launch_index.x, launch_index.y );
-  result_buffer[launch_index] = make_float4(0, 1, 0, 0);
+  output_buffer[launch_index] = make_float4(0, 1, 0, 0);
 }
