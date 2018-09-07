@@ -52,6 +52,9 @@ class GeometryInstance(GraphNodeMixin, ScopedObject, HasContextMixin):
         self._safe_native.set_material_count(len(self._materials))
         self._safe_native.set_material(idx, material._safe_native)
 
+    def __setitem__(self, key, value):
+        self._safe_native[key]->setFloat(value)
+
     def get_material(self, idx=0):
         if idx < len(self._materials):
             return self._materials[idx]

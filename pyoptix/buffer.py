@@ -76,8 +76,14 @@ class Buffer(HasContextMixin, DestroyableObject, BindlessMixin):
     def get_element_size(self):
         return self._safe_native.get_element_size()
 
+    def set_element_size(self, size):
+        self._safe_native.set_element_size(size)
+
     def get_size(self):
         return self._safe_native.get_size()
+
+    def set_size(self, size):
+        self._safe_native.set_size(size)
 
     def get_size_in_bytes(self):
         return self._safe_native.get_size_in_bytes()

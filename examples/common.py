@@ -17,6 +17,7 @@ class ImageWindow:
         self.frame_count = 0
         self.context = context
         self.gl_tex_id = 0
+        self.display_callbacks = []
 
         glutInit(sys.argv)
         glutInitDisplayMode(GLUT_RGB | GLUT_ALPHA | GLUT_DEPTH | GLUT_DOUBLE)
@@ -40,7 +41,7 @@ class ImageWindow:
 
         # callbacks
         glutDisplayFunc(self.glutDisplay)
-        #glutIdleFunc(glutDisplay)
+        glutIdleFunc(self.glutDisplay)
         #glutReshapeFunc(glutResize)
         #glutKeyboardFunc(glutKeyboardPress)
         #glutMouseFunc(glutMousePress)
@@ -53,6 +54,8 @@ class ImageWindow:
     def glutDisplay(self, output_buffer_name="output_buffer"):
         # update camera
         # launch context
+        for callback in self.display_callbacks:
+            callback(self.context)
         self.context.launch(0, self.width, self.height)
 
         buffer = self.context[output_buffer_name]

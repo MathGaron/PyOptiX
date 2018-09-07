@@ -11,8 +11,6 @@ private:
 public:
     NativeBufferWrapper(optix::Buffer buffer);
     ~NativeBufferWrapper();
-    void* map();
-    void unmap();
     int get_id();
     unsigned int getGLBOId();
     void mark_dirty();

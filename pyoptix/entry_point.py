@@ -9,12 +9,17 @@ logger = logging.getLogger(__name__)
 
 class EntryPoint(HasContextMixin):
     __default_exception_program = None
+    __default_miss_program = None
 
     @classmethod
     def set_default_exception_program(cls, file_path, function_name):
         cls.__default_exception_program = (file_path, function_name)
 
-    def __init__(self, ray_generation_program, exception_program=None, size=None):
+    @classmethod
+    def set_default_miss_program(cls, file_path, function_name):
+        cls.__default_miss_program = (file_path, function_name)
+
+    def __init__(self, ray_generation_program, exception_program=None, miss_program=None, size=None):
         HasContextMixin.__init__(self, current_context())
 
         if is_2_string_tuple(ray_generation_program):
@@ -28,6 +33,13 @@ class EntryPoint(HasContextMixin):
             self.exception_program = Program(*exception_program)
         elif isinstance(exception_program, Program) or exception_program is None:
             self.exception_program = exception_program
+        else:
+            raise ValueError('Invalid exception program given')
+
+        if is_2_string_tuple(miss_program):
+            self.miss_program = Program(*miss_program)
+        elif isinstance(exception_program, Program) or exception_program is None:
+            self.miss_program = miss_program
         else:
             raise ValueError('Invalid exception program given')
 
@@ -65,6 +77,11 @@ class EntryPoint(HasContextMixin):
             context.set_exception_program(0, self.exception_program)
         elif self.__default_exception_program is not None:
             context.set_exception_program(0, Program.get_or_create(*self.__default_exception_program))
+
+        if self.miss_program is not None:
+            context.set_miss_program(0, self.miss_program)
+        elif self.__default_miss_program is not None:
+            context.set_miss_program(0, Program.get_or_create(*self.__default_miss_program))
 
         # launch
         context.validate()
