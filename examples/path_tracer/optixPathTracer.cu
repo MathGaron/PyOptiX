@@ -216,7 +216,7 @@ RT_PROGRAM void diffuse()
 
     // NOTE: f/pdf = 1 since we are perfectly importance sampling lambertian
     // with cosine density.
-    rtPrintf("color : %f %f %f\n", diffuse_color.x, diffuse_color.y, diffuse_color.z);
+    //rtPrintf("color : %f %f %f\n", diffuse_color.x, diffuse_color.y, diffuse_color.z);
     current_prd.attenuation = current_prd.attenuation * diffuse_color;
     current_prd.countEmitted = false;
 

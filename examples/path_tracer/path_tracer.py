@@ -107,6 +107,12 @@ def create_parallelogram(anchor, offset1, offset2, intersect_program, bb_program
     return parallelogram
 
 
+def create_geometry_instance(geometry, material, variable, color):
+    geometry_instance = GeometryInstance(geometry, material)
+    geometry_instance[variable] = color
+    return geometry_instance
+
+
 def create_geometry(context):
     light = ParallelogramLight()
     light.set_corner(343., 548.6, 227.)
@@ -125,32 +131,75 @@ def create_geometry(context):
 
     # colors
     white = np.array([0.8, 0.8, 0.8], dtype=np.float32)
+    green = np.array([0.05, 0.8, 0.05], dtype=np.float32)
+    red = np.array([0.8, 0.05, 0.05], dtype=np.float32)
+
+    geometry_instances = []
 
     # floor
     floor_geometry = create_parallelogram(np.array([0., 0.0, 0.], dtype=np.float32),
                                           np.array([0., 0.0, 559.2], dtype=np.float32),
                                           np.array([556., 0, 0.], dtype=np.float32),
                                           pgram_intersection, pgram_bounding_box)
-    floor_geometry['diffuse_color'] = white
-    floor_instance = GeometryInstance(floor_geometry, diffuse)
+    geometry_instances.append(create_geometry_instance(floor_geometry, diffuse, "diffuse_color", white))
 
     # ceiling
     ceiling_geometry = create_parallelogram(np.array([0., 548.8, 0.], dtype=np.float32),
-                                          np.array([556., 0.0, 0.], dtype=np.float32),
-                                          np.array([0., 0, 559.2], dtype=np.float32),
-                                          pgram_intersection, pgram_bounding_box)
-    ceiling_geometry['diffuse_color'] = white
-    ceiling_instance = GeometryInstance(ceiling_geometry, diffuse)
+                                            np.array([556., 0.0, 0.], dtype=np.float32),
+                                            np.array([0., 0, 559.2], dtype=np.float32),
+                                            pgram_intersection, pgram_bounding_box)
+    geometry_instances.append(create_geometry_instance(ceiling_geometry, diffuse, "diffuse_color", white))
 
     # back wall
     bwall_geometry = create_parallelogram(np.array([0., 0., 559.2], dtype=np.float32),
-                                            np.array([0., 548.8, 0.], dtype=np.float32),
-                                            np.array([556., 0, 0.], dtype=np.float32),
-                                            pgram_intersection, pgram_bounding_box)
-    bwall_geometry['diffuse_color'] = white
-    bwall_instance = GeometryInstance(bwall_geometry, diffuse)
+                                          np.array([0., 548.8, 0.], dtype=np.float32),
+                                          np.array([556., 0, 0.], dtype=np.float32),
+                                          pgram_intersection, pgram_bounding_box)
+    geometry_instances.append(create_geometry_instance(bwall_geometry, diffuse, "diffuse_color", white))
 
-    shadow_group = GeometryGroup(children=[floor_instance, ceiling_instance, bwall_instance])
+    # right wall
+    rwall_geometry = create_parallelogram(np.array([0., 0., 0.], dtype=np.float32),
+                                          np.array([0., 548.8, 0.], dtype=np.float32),
+                                          np.array([0., 0, 559.2], dtype=np.float32),
+                                          pgram_intersection, pgram_bounding_box)
+    geometry_instances.append(create_geometry_instance(rwall_geometry, diffuse, "diffuse_color", green))
+
+    # left wall
+    lwall_geometry = create_parallelogram(np.array([556., 0., 0.], dtype=np.float32),
+                                          np.array([0., 0., 559.2], dtype=np.float32),
+                                          np.array([0., 548.8, 0.], dtype=np.float32),
+                                          pgram_intersection, pgram_bounding_box)
+    geometry_instances.append(create_geometry_instance(lwall_geometry, diffuse, "diffuse_color", red))
+
+    # short block
+    short_a = create_parallelogram(np.array([130.0, 165.0, 65.0], dtype=np.float32),
+                                   np.array([-48., 0., 160], dtype=np.float32),
+                                   np.array([160., 0.0, 49.], dtype=np.float32),
+                                   pgram_intersection, pgram_bounding_box)
+    short_b = create_parallelogram(np.array([290., 0., 114.], dtype=np.float32),
+                                   np.array([0., 165., 0.0], dtype=np.float32),
+                                   np.array([-50., 0.0, 158.], dtype=np.float32),
+                                   pgram_intersection, pgram_bounding_box)
+    short_c = create_parallelogram(np.array([130., 0., 65.], dtype=np.float32),
+                                   np.array([0., 165., 0.], dtype=np.float32),
+                                   np.array([160., 0., 49.], dtype=np.float32),
+                                   pgram_intersection, pgram_bounding_box)
+    short_d = create_parallelogram(np.array([82., 0., 225.], dtype=np.float32),
+                                   np.array([0., 165., 0.], dtype=np.float32),
+                                   np.array([48., 0., -160.], dtype=np.float32),
+                                   pgram_intersection, pgram_bounding_box)
+    short_e = create_parallelogram(np.array([240., 0., 272.], dtype=np.float32),
+                                   np.array([0., 165., 0.], dtype=np.float32),
+                                   np.array([-158., 0., -47.], dtype=np.float32),
+                                   pgram_intersection, pgram_bounding_box)
+
+    geometry_instances.append(create_geometry_instance(short_a, diffuse, "diffuse_color", white))
+    geometry_instances.append(create_geometry_instance(short_b, diffuse, "diffuse_color", white))
+    geometry_instances.append(create_geometry_instance(short_c, diffuse, "diffuse_color", white))
+    geometry_instances.append(create_geometry_instance(short_d, diffuse, "diffuse_color", white))
+    geometry_instances.append(create_geometry_instance(short_e, diffuse, "diffuse_color", white))
+
+    shadow_group = GeometryGroup(children=geometry_instances)
     shadow_group.set_acceleration(Acceleration("Trbvh"))
     context['top_shadower'] = shadow_group
 
@@ -159,10 +208,11 @@ def create_geometry(context):
                                           np.array([-130., 0.0, 0.], dtype=np.float32),
                                           np.array([0., 0, 105.], dtype=np.float32),
                                           pgram_intersection, pgram_bounding_box)
-    light_geometry['emission_color'] = np.array([15., 15., 5.], dtype=np.float32)
     light_instance = GeometryInstance(light_geometry, diffuse_light)
+    light_instance['emission_color'] = np.array([15., 15., 5.], dtype=np.float32)
+    geometry_instances.append(light_instance)
 
-    group = GeometryGroup(children=[floor_instance, ceiling_instance, light_instance, bwall_instance])
+    group = GeometryGroup(children=geometry_instances)
     group.set_acceleration(Acceleration("Trbvh"))
     context['top_object'] = group
 
@@ -199,7 +249,7 @@ def set_camera(context):
 
     #  apply transformation
 
-    #print(frame.to_parameters(True))
+    # print(frame.to_parameters(True))
 
     context["frame_number"] = np.array(frame_number, dtype=np.uint32)
     context["eye"] = np.array(camera_eye, dtype=np.float32)
