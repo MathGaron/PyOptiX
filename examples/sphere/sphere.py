@@ -3,10 +3,9 @@ from os.path import dirname
 sys.path.append(dirname(dirname(dirname(__file__))))
 
 import numpy as np
-from PIL import Image
 from pyoptix import Context, Compiler, Buffer, Program, Geometry, Material, GeometryInstance, EntryPoint, \
     GeometryGroup, Acceleration
-from examples.common import ImageWindow, calculate_camera_variables, ImageWindow
+from examples.common import ImageWindowBase, calculate_camera_variables
 
 width = 1024
 height = 768
@@ -23,7 +22,7 @@ def main():
     entry_point.launch((width, height))
     context.pop()
 
-    window = ImageWindow(context, width, height)
+    window = ImageWindowBase(context, width, height)
     window.run()
 
 

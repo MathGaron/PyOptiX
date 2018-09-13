@@ -1,12 +1,10 @@
 from OpenGL.GLUT import *
 from OpenGL.GL import *
 import time
-from abc import ABC, abstractmethod
-
 from pyoptix.enums import Format
 
 
-class ImageWindowBase(ABC):
+class ImageWindowBase:
     def __init__(self, context, width, height, name="window"):
         self.width = width
         self.height = height

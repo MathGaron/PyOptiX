@@ -5,7 +5,7 @@ sys.path.append(dirname(dirname(dirname(__file__))))
 import numpy as np
 from PIL import Image
 from pyoptix import Context, Buffer, Program, EntryPoint, Compiler
-from examples.common import ImageWindow, ImageWindow
+from examples.common import ImageWindowBase
 
 
 Compiler.add_program_directory(dirname(__file__))
@@ -28,7 +28,7 @@ def main():
     entry_point = EntryPoint(ray_gen_program)
     entry_point.launch(size=(width, height))
 
-    window = ImageWindow(context, width, height)
+    window = ImageWindowBase(context, width, height)
     window.run()
 
 if __name__ == '__main__':
