@@ -1,9 +1,8 @@
 import sys
 from os.path import dirname
-
+from OpenGL.GLUT import *
+from OpenGL.GL import *
 import math
-
-from pyoptix._driver import RTbuffertype, RTformat
 
 from pyoptix.matrix4x4 import Matrix4x4
 
@@ -12,14 +11,99 @@ sys.path.append(dirname(dirname(dirname(__file__))))
 import numpy as np
 from pyoptix import Context, Compiler, Buffer, Program, Geometry, Material, GeometryInstance, EntryPoint, \
     GeometryGroup, Acceleration
-from examples.common import ImageWindow, calculate_camera_variables
+from examples.common import ImageWindowBase, calculate_camera_variables
 
-width = 1024
-height = 768
-camera_rotate = Matrix4x4()
+ESCAPE_KEY = 27
+
+width = 512
+height = 512
 Compiler.add_program_directory(dirname(__file__))
 
-frame_number = 1
+
+
+class ImageWindow(ImageWindowBase):
+    def __init__(self, context, width, height):
+        super().__init__(context, width, height)
+        # will be called before display
+        self.display_callbacks.append(self.set_camera)
+        self.frame_number = 1
+        self.mouse_button = None
+        self.moues_prev_pose = None
+        self.camera_eye = np.array([278, 273, -900], dtype=np.float32)
+        self.camera_lookat = np.array([278, 273, 0], dtype=np.float32)
+        self.camera_rotate = Matrix4x4()
+
+    def glut_resize(self, w, h):
+        global frame_number
+        if self.width == w and self.height == h: return
+
+        if w <= 0: w = 1
+        if h <= 0: h = 1
+
+        self.width = w
+        self.height = h
+
+        frame_number = 1
+        self.context["output_buffer"].set_size(self.width, self.height)
+        glViewport(0, 0, self.width, self.height)
+        glutPostRedisplay()
+
+    def glut_keyboard_press(self, k, x, y):
+        if ord(k) == ESCAPE_KEY:
+            exit()
+
+    def glut_mouse_press(self, button, state, x, y):
+        if state == GLUT_DOWN:
+            self.mouse_button = button
+            self.mouse_prev_pose = (x, y)
+
+    def glut_mouse_motion(self, x, y):
+        if self.mouse_button == GLUT_RIGHT_BUTTON:
+            dx = float(x - self.mouse_prev_pose[0]) / float(self.width)
+            dy = float(y - self.mouse_prev_pose[1]) / float(self.height)
+            dmax = dx if abs(dx) > abs(dy) else dy
+            scale = min(dmax, 0.9)
+            self.camera_eye = self.camera_eye + (self.camera_lookat - self.camera_eye) * scale
+            self.frame_number = 1
+
+        #todo implement arcball rotation...
+
+        self.mouse_prev_pose = (x, y)
+
+    def set_camera(self):
+        camera_up = np.array([0, 1, 0], dtype=np.float32)
+        fov = 35.0
+        aspect_ratio = float(width) / float(height)
+
+        # claculate camera variables
+        W = self.camera_lookat - self.camera_eye
+        wlen = np.sqrt(np.sum(W ** 2))
+        U = normalize(np.cross(W, camera_up))
+        V = normalize(np.cross(U, W))
+
+        vlen = wlen * math.tan(0.5 * fov * math.pi / 180)
+        V *= vlen
+        ulen = vlen * aspect_ratio
+        U *= ulen
+
+        # compute transformations
+        frame = Matrix4x4.from_basis(normalize(U),
+                                     normalize(V),
+                                     normalize(-W),
+                                     self.camera_lookat)
+        frame_inv = frame.inverse()
+
+        #  apply transformation
+
+        # print(frame.to_parameters(True))
+
+        self.context["frame_number"] = np.array(self.frame_number, dtype=np.uint32)
+        self.context["eye"] = np.array(self.camera_eye, dtype=np.float32)
+        self.context["U"] = np.array(U, dtype=np.float32)
+        self.context["V"] = np.array(V, dtype=np.float32)
+        self.context["W"] = np.array(W, dtype=np.float32)
+
+        self.frame_number += 1
 
 
 class ParallelogramLight:
@@ -51,15 +135,13 @@ class ParallelogramLight:
 
 def main():
     context, entry_point = create_context()
-    context.set_print_enabled(True)
-    context.set_print_buffer_size(20000)
+    # context.set_print_enabled(True)
+    # context.set_print_buffer_size(20000)
     create_geometry(context)
-    set_camera(context)
 
     entry_point.launch((width, height))
 
     window = ImageWindow(context, width, height)
-    window.display_callbacks.append(set_camera)
     window.run()
 
 
@@ -199,6 +281,34 @@ def create_geometry(context):
     geometry_instances.append(create_geometry_instance(short_d, diffuse, "diffuse_color", white))
     geometry_instances.append(create_geometry_instance(short_e, diffuse, "diffuse_color", white))
 
+    # short block
+    tall_a = create_parallelogram(np.array([426.0, 330.0, 247.0], dtype=np.float32),
+                                  np.array([-158., 0., 49], dtype=np.float32),
+                                  np.array([49., 0.0, 159.], dtype=np.float32),
+                                  pgram_intersection, pgram_bounding_box)
+    tall_b = create_parallelogram(np.array([423., 0., 247.], dtype=np.float32),
+                                  np.array([0., 330., 0.0], dtype=np.float32),
+                                  np.array([49., 0.0, 159.], dtype=np.float32),
+                                  pgram_intersection, pgram_bounding_box)
+    tall_c = create_parallelogram(np.array([472., 0., 406.], dtype=np.float32),
+                                  np.array([0., 330., 0.], dtype=np.float32),
+                                  np.array([-158., 0., 50.], dtype=np.float32),
+                                  pgram_intersection, pgram_bounding_box)
+    tall_d = create_parallelogram(np.array([314., 0., 456.], dtype=np.float32),
+                                  np.array([0., 330., 0.], dtype=np.float32),
+                                  np.array([-49., 0., -160.], dtype=np.float32),
+                                  pgram_intersection, pgram_bounding_box)
+    tall_e = create_parallelogram(np.array([265., 0., 296.], dtype=np.float32),
+                                  np.array([0., 330., 0.], dtype=np.float32),
+                                  np.array([158., 0., -49.], dtype=np.float32),
+                                  pgram_intersection, pgram_bounding_box)
+
+    geometry_instances.append(create_geometry_instance(tall_a, diffuse, "diffuse_color", white))
+    geometry_instances.append(create_geometry_instance(tall_b, diffuse, "diffuse_color", white))
+    geometry_instances.append(create_geometry_instance(tall_c, diffuse, "diffuse_color", white))
+    geometry_instances.append(create_geometry_instance(tall_d, diffuse, "diffuse_color", white))
+    geometry_instances.append(create_geometry_instance(tall_e, diffuse, "diffuse_color", white))
+
     shadow_group = GeometryGroup(children=geometry_instances)
     shadow_group.set_acceleration(Acceleration("Trbvh"))
     context['top_shadower'] = shadow_group
@@ -208,56 +318,18 @@ def create_geometry(context):
                                           np.array([-130., 0.0, 0.], dtype=np.float32),
                                           np.array([0., 0, 105.], dtype=np.float32),
                                           pgram_intersection, pgram_bounding_box)
-    light_instance = GeometryInstance(light_geometry, diffuse_light)
-    light_instance['emission_color'] = np.array([15., 15., 5.], dtype=np.float32)
-    geometry_instances.append(light_instance)
+    light_instance = create_geometry_instance(light_geometry,
+                                              diffuse_light,
+                                              "emission_color",
+                                              np.array([15., 15., 5.], dtype=np.float32))
 
-    group = GeometryGroup(children=geometry_instances)
+    group = GeometryGroup(children=(geometry_instances + [light_instance]))
     group.set_acceleration(Acceleration("Trbvh"))
     context['top_object'] = group
 
 
 def normalize(mat):
     return mat / np.linalg.norm(mat)
-
-
-def set_camera(context):
-    global frame_number
-    camera_eye = np.array([278, 273, -900], dtype=np.float32)
-    camera_lookat = np.array([278, 273, 0], dtype=np.float32)
-    camera_up = np.array([0, 1, 0], dtype=np.float32)
-    fov = 35.0
-    aspect_ratio = float(width) / float(height)
-
-    # claculate camera variables
-    W = camera_lookat - camera_eye
-    wlen = np.sqrt(np.sum(W ** 2))
-    U = normalize(np.cross(W, camera_up))
-    V = normalize(np.cross(U, W))
-
-    vlen = wlen * math.tan(0.5 * fov * math.pi / 180)
-    V *= vlen
-    ulen = vlen * aspect_ratio
-    U *= ulen
-
-    # compute transformations
-    frame = Matrix4x4.from_basis(normalize(U),
-                                 normalize(V),
-                                 normalize(-W),
-                                 camera_lookat)
-    frame_inv = frame.inverse()
-
-    #  apply transformation
-
-    # print(frame.to_parameters(True))
-
-    context["frame_number"] = np.array(frame_number, dtype=np.uint32)
-    context["eye"] = np.array(camera_eye, dtype=np.float32)
-    context["U"] = np.array(U, dtype=np.float32)
-    context["V"] = np.array(V, dtype=np.float32)
-    context["W"] = np.array(W, dtype=np.float32)
-
-    frame_number += 1
 
 
 if __name__ == '__main__':

@@ -82,8 +82,13 @@ class Buffer(HasContextMixin, DestroyableObject, BindlessMixin):
     def get_size(self):
         return self._safe_native.get_size()
 
-    def set_size(self, size):
-        self._safe_native.set_size(size)
+    def set_size(self, w, h):
+        shape = list(self.numpy_shape)
+        # update numpy shape
+        shape[0] = h
+        shape[1] = w
+        self._numpy_shape = tuple(shape)
+        self._safe_native.set_size([w, h])
 
     def get_size_in_bytes(self):
         return self._safe_native.get_size_in_bytes()

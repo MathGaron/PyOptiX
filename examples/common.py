@@ -1,13 +1,12 @@
 from OpenGL.GLUT import *
-from OpenGL.GLU import *
-import OpenGL.GLUT.fonts
 from OpenGL.GL import *
 import time
+from abc import ABC, abstractmethod
 
 from pyoptix.enums import Format
 
 
-class ImageWindow:
+class ImageWindowBase(ABC):
     def __init__(self, context, width, height, name="window"):
         self.width = width
         self.height = height
@@ -40,22 +39,34 @@ class ImageWindow:
         glutReshapeWindow(self.width, self.height)
 
         # callbacks
-        glutDisplayFunc(self.glutDisplay)
-        glutIdleFunc(self.glutDisplay)
-        #glutReshapeFunc(glutResize)
-        #glutKeyboardFunc(glutKeyboardPress)
-        #glutMouseFunc(glutMousePress)
-        #glutMotionFunc(glutMouseMotion)
+        glutDisplayFunc(self.glut_display)
+        glutIdleFunc(self.glut_display)
+        glutReshapeFunc(self.glut_resize)
+        glutKeyboardFunc(self.glut_keyboard_press)
+        glutMouseFunc(self.glut_mouse_press)
+        glutMotionFunc(self.glut_mouse_motion)
 
         #registerExitHandler()
 
         glutMainLoop()
 
-    def glutDisplay(self, output_buffer_name="output_buffer"):
+    def glut_resize(self, w, h):
+        pass
+
+    def glut_keyboard_press(self, k, x, y):
+        pass
+
+    def glut_mouse_press(self, button, state, x, y):
+        pass
+
+    def glut_mouse_motion(self, x, y):
+        pass
+
+    def glut_display(self, output_buffer_name="output_buffer"):
         # update camera
         # launch context
         for callback in self.display_callbacks:
-            callback(self.context)
+            callback()
         self.context.launch(0, self.width, self.height)
 
         buffer = self.context[output_buffer_name]
@@ -101,8 +112,8 @@ class ImageWindow:
         glEnd()
         glDisable(GL_TEXTURE_2D)
 
-        #self.frame_count += 1
-        #self.display_fps(self.frame_count)
+        self.frame_count += 1
+        self.display_fps(self.frame_count)
         glutSwapBuffers()
 
     def display_fps(self, frame_count):
@@ -111,25 +122,7 @@ class ImageWindow:
             self.fps = (frame_count - self.last_frame_count) / (current_time - self.last_update_time )
             self.last_frame_count = frame_count
             self.last_update_time = current_time
-        print(self.fps)
-
-
-        text = "hello"
-        blending = False
-        if glIsEnabled(GL_BLEND):
-            blending = True
-
-        glLoadIdentity()
-        gluOrtho2D(0.0, 1.0, 0.0, 1.0)
-        glMatrixMode(GL_MODELVIEW)
-
-        glColor3f(1, 1, 1)
-        glRasterPos2f(0, 0)
-        for ch in text:
-            glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, ctypes.c_int(ord(ch)))
-
-        if not blending:
-            glDisable(GL_BLEND)
+        print("fps : {}".format(self.fps))
 
 
 def calculate_camera_variables(eye, lookat, up, fov, aspect_ratio, fov_is_vertical=False):
