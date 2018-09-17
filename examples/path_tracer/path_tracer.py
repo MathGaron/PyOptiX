@@ -11,7 +11,7 @@ sys.path.append(dirname(dirname(dirname(__file__))))
 import numpy as np
 from pyoptix import Context, Compiler, Buffer, Program, Geometry, Material, GeometryInstance, EntryPoint, \
     GeometryGroup, Acceleration
-from examples.common import ImageWindowBase, calculate_camera_variables
+from examples.image_window_base import ImageWindowBase, calculate_camera_variables
 
 ESCAPE_KEY = 27
 
@@ -34,7 +34,6 @@ class ImageWindow(ImageWindowBase):
         self.camera_rotate = Matrix4x4()
 
     def glut_resize(self, w, h):
-        global frame_number
         if self.width == w and self.height == h: return
 
         if w <= 0: w = 1
@@ -43,7 +42,7 @@ class ImageWindow(ImageWindowBase):
         self.width = w
         self.height = h
 
-        frame_number = 1
+        self.frame_number = 1
         self.context["output_buffer"].set_size(self.width, self.height)
         glViewport(0, 0, self.width, self.height)
         glutPostRedisplay()
@@ -109,7 +108,7 @@ class ImageWindow(ImageWindowBase):
 class ParallelogramLight:
     def __init__(self):
         # structure : [corner, v1, v2, normal, emission] (all float3)
-        self.buffer_numpy = np.zeros(15, dtype=np.float32)
+        self.buffer_numpy = np.zeros(15, dtype='<f4')
 
     @property
     def buffer(self):
