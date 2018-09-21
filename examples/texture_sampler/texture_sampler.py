@@ -5,7 +5,7 @@ sys.path.append(dirname(dirname(dirname(__file__))))
 import numpy as np
 from PIL import Image
 from pyoptix import Context, Compiler, Buffer, Program, EntryPoint, TextureSampler
-from examples.common import ImageWindow, ImageWindow
+from examples.image_window_base import ImageWindowBase
 
 Compiler.add_program_directory(dirname(__file__))
 
@@ -44,15 +44,8 @@ def main():
 
     entry_point.launch((trace_width, trace_height))
 
-    window = ImageWindow(context, trace_width, trace_height)
+    window = ImageWindowBase(context, trace_width, trace_height)
     window.run()
-
-    #result_array = context['result_buffer'].to_array()
-    #result_array *= 255
-    #result_array = result_array.astype(np.uint8)
-    #result_image = Image.fromarray(result_array)
-    #ImageWindow(result_image)
-
 
 if __name__ == '__main__':
     main()
