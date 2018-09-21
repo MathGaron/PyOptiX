@@ -99,8 +99,6 @@ class ImageWindow(ImageWindowBase):
 
         #  apply transformation
 
-        # print(frame.to_parameters(True))
-
         self.context["frame_number"] = np.array(self.frame_number, dtype=np.uint32)
         self.context["eye"] = np.array(self.camera_eye, dtype=np.float32)
         self.context["U"] = np.array(U, dtype=np.float32)
@@ -152,7 +150,7 @@ def create_geometry_instance(geometry, material, variable, color):
 def create_geometry(context):
     global mesh_g
     mesh_g = OptixMesh()
-    mesh_g.load_from_file("../data/dragon.obj")
+    mesh_g.load_from_file("../data/cow.obj")
     basic_lights = np.zeros(3,
                             dtype=[('pos', ('<f4', 3)), ('color', ('<f4', 3)), ('cast_shadow', '<u4'), ('padd', '<u4')])
     basic_lights["pos"] = [[-0.5, 0.25, -1.0],

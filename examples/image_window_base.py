@@ -88,7 +88,7 @@ class ImageWindowBase:
             imageData = buffer.to_array()
 
         if buffer_format == Format.unsigned_byte4:
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self.width, self.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self.width, self.height, 0, GL_BGRA, GL_UNSIGNED_BYTE, imageData)
         elif buffer_format == Format.float4:
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, self.width, self.height, 0, GL_RGBA, GL_FLOAT, imageData)
         else:

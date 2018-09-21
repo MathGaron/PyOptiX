@@ -1,11 +1,12 @@
 import numpy as np
-import pymesh
-
-from examples.mesh import Mesh
+import trimesh
 from pyoptix import Buffer, GeometryInstance, Geometry, Program, Material
 
 
 class OptixMesh:
+    """
+    Does not support textures and material
+    """
     def __init__(self):
 
         # setup programs
@@ -32,19 +33,17 @@ class OptixMesh:
         self.material_buffer = Buffer.from_array([], dtype=np.dtype('i4'), buffer_type='i')
 
     def load_from_file(self, filename):
-        mesh = pymesh.load_mesh(filename)
-        #print(mesh.attribute_names)
-        #print(np.sum(np.isinf(mesh.vertices)))
-        #print(mesh.vertices)
-        #print(mesh.bbox)
-        #print(mesh.num_faces)
-        #exit()
-        self.bbox_min = mesh.bbox[0]
-        self.bbox_max = mesh.bbox[1]
-        self.n_triangles = mesh.num_faces
-        self.n_vertices = mesh.num_vertices
+        mesh = trimesh.load(filename)
+        self.bbox_min = mesh.bounding_box.bounds[0]
+        self.bbox_max = mesh.bounding_box.bounds[1]
+        self.n_triangles = mesh.faces.shape[0]
+        self.n_vertices = mesh.vertices.shape[0]
         self.positions_buffer = Buffer.from_array([x.tobytes() for x in mesh.vertices.astype(np.float32)], buffer_type='i')
-        self.tri_indices = Buffer.from_array([x.tobytes() for x in mesh.faces], buffer_type='i')
+        self.tri_indices = Buffer.from_array([x.tobytes() for x in mesh.faces.astype(np.int32)], buffer_type='i')
+        self.normals_buffer = Buffer.from_array([x.tobytes() for x in mesh.vertex_normals.astype(np.float32)], buffer_type='i')
+        if "vertex_texture" in mesh.metadata:
+            self.texcoord_buffer = Buffer.from_array([x.tobytes() for x in mesh.metadata["vertex_texture"].astype(np.int32)],
+                                                    buffer_type='i')
 
         # setup material
         self.Kd = np.array([0.7, 0.7, 0.7], np.float32)
